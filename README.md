@@ -1,30 +1,87 @@
-- como melhorar o algoritmo
-- gerar população inicial usando o primeiro passo do GRASP
+Ideias:
+
+Redes Neurais:
+
+
 - gerar população inicial usando redes neurais ou algum outro método que leve em consideração informações históricas tentando identificar padrões. (por exemplo: sempre nessa época do ano o lixo se acumula dessa forma específica).
 - para gerar uma solução usando uma rede neural ela deveria gerar uma ordenação dos elementos
+
+GRASP: 
+
+- gerar população inicial usando o primeiro passo do GRASP
+- e se eu encarar minha população toda como sendo um individuo. Cada geração do genético seria uma contrução do GRASP por exemplo e a busca local seria feita sobre esses individuos.
+
+Modificações para o Genético Atual:
+
 - talvez usar outras técnicas de seleção de indivíduos diferentes de truncation selection
-- sera que quando a condição de parada for alcançada pode-se perturbar a solução como no ILS para gerar uma nova população e tentar encontrar outro mínimo. E se o ILS não for sobre um único indivíduo mas sobre uma população inteira?
 - essa questão de crossover e mutation ratio é estranha.
-- usar busca local no algoritmo genético 
-- variar aplicação das buscas locais
+- usar busca local no algoritmo genético
 - latas de lixo mais cheias poderiam ter mais prioridade nas soluções
 - mudar o cálculo do peso das arestas do grafo
+- duplicar os individuos na selecao é benefico?
+- mudar o calculo de fitness?
+- talvez no iterated crossover usar somente uma vez um individuo para gerar prole
+- ao invés de só duplicar os elementos depois da seleção usar algum tipo de heuristica para melhorar as soluções
+- valor mais bem ajustado de mutação 
+- testar outros métodos de crossing
 
+ILS:
 
-- each road (edge) has two parameters for both directions, which represent different weight of each direction i.e. one direction of the road is more loaded than other
-- one-way road pode ser resentada colocando infinito em alguma das direções
-- o peso é computado como uma soma de todos os parâmetros que impactam a rua, por exemplo: distância, traffic-density, road quality.
-- dado um digrafo incompleto que mapeia as ruas e as latas de lixo da cidade usa Floyd Warshall para gerar um digrafo completo.
-- TSP assimétrico
-- Etapas:
-    - Geração da população
-    - Processo de seleção, recombinação (crossover) e mutação
-    - Critério principal para escrolher o melhor indivíduo e a melhor solução     
-- aparentemente a população inicial é gerada randomicamente
-- O tipo de seleção usado é o truncation selection (retains the fittest x% of the population). Esses fittest são duplicados para manter o tamanho da população.
-- O crossover é dado por um limite máximo de crossing (que também é o valor mínimo de mutação).
-- The same individuals should not be crossed, but mutated to get better or new individual.
-- Se uma nova solucao não é melhor que a anterior por b% por a iterações para. (Para não travar num máximo ou mínimo local).
+- sera que quando a condição de parada for alcançada pode-se perturbar a solução como no ILS para gerar uma nova população e tentar encontrar outro mínimo. E se o ILS não for sobre um único indivíduo mas sobre uma população inteira?
 
+VND/VNS:
 
-    https://www.dca.fee.unicamp.br/~gomide/courses/EA072/artigos/Genetic_Algorithm_TSPR_eview_Larranaga_1999.pdf
+- usar busca local progressiva no algoritmo genético
+
+Anotações:
+
+genético + busca local (talvez do grasp)
+citar que não consegui acesso à base de dados
+
+Algoritmos que o professor expôs:
+
+ILS: 
+
+1. perturbing the current local minimum
+2. applying local search after starting from the modified solution
+
+VND
+
+Conjunto de estruturas de vizinhança.
+Explora o espaço de soluções através de trocas sistemáticas de estruturas de vizinhança
+Explora vizinhanças de modo gradual.
+Solução base pode ser um cromossomo gerado pelo genético.
+
+VNS
+
+Loop externo no VND. A cada iteração gera um vizinho qualquer da melhor solução do VNS
+
+GRASP
+
+GRASP é usualmente implementado como um procedimento "multi-start" onde a cada iteração, é feito uma etapa de construção e uma de busca local.
+A construção é feita elemento a elemento. 
+Seleciona uma lista restrita de melhores candidatos dentre todos os possíveis. Escolhe-se randômicamente um elemento dessa lista restrita.
+
+Algoritmos genéticos -
+
+Links:
+
+https://www.dca.fee.unicamp.br/~gomide/courses/EA072/artigos/Genetic_Algorithm_TSPR_eview_Larranaga_1999.pdf
+
+https://www.math.uwaterloo.ca/tsp/world/djlog.html
+
+https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html
+
+TODO:
+
+Implementar modificações propostas no artigo
+Ajeitar referências
+Ajeitar identificadores das seções
+Melhorar introdução 
+Escrever abstract 
+Adicionar seções que ele pediu
+Escrever seção de experimentos
+Escrever conclusão
+Gravar video
+Revisar artigo
+Resolver comentários no artigo
