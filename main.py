@@ -3,37 +3,19 @@ import random
 best_individual = []
 
 def twoOptimalSwap(ind,i,k):
+    print(i,k)
     new_route = []
 
-    for i in range(0,i):
-        new_route.append(ind[i])
-        print(new_route)
+    for j in range(0,i):
+        new_route.append(ind[j])
 
-    for i in range(k,i,-1):
-        new_route.append(ind[i])
-        print(new_route)
+    for j in range(k,i-1,-1):
+        new_route.append(ind[j])
 
-    for i in range(k+1,len(ind)):
-        new_route.append(ind[i])
-        print(new_route)
+    for j in range(k+1,len(ind)):
+        new_route.append(ind[j])
 
     return new_route
-
-# Gera todas as combinacoes do dois optimal
-def twoOptimal(adj_matrix,ind):
-    new_routes = [[ind[0].copy(),ind[1]]]
-
-    for i in range(0,len(ind[0])):
-        for k in range(i+1,len(ind[0])+1):
-            new_route = twoOptimalSwap(ind[0],i,k)
-            # new_fitness = fitness(adj_matrix,new_route)
-            new_fitness = 0
-
-            new_routes.append([new_route,new_fitness])
-
-    return new_routes
-
-print(twoOptimal([],[1,2,3,4]))
 
 def sortCriteria(elem):
     return elem[1]
@@ -46,6 +28,46 @@ def fitness(adj_matrix, vetor):
     weight += adj_matrix[vetor[-1]][vetor[0]]
 
     return weight
+
+# Gera todas as combinacoes do dois optimal
+def twoOptimal(adj_matrix,ind):
+    new_routes = [[ind[0].copy(),ind[1]]]
+    best = []
+
+    for i in range(0,len(ind[0])-1):
+        for k in range(i+1,len(ind[0])):
+            new_route = twoOptimalSwap(ind[0],i,k)
+            new_fitness = fitness(adj_matrix,new_route)
+
+            new_routes.append([new_route,new_fitness])
+
+            if len(best) == 0:
+                best = [new_route,new_fitness]
+            else:
+                if new_fitness < best[1]:
+                    best = [new_route,new_fitness]
+
+    return new_routes, best
+
+def vnsAfterSelection(adj_matrix,ind,i):    
+    s = ind
+    generated_ind = []
+    twoOptimalSet = []
+    
+    while(len(generated_ind) < i):
+        k = 1
+        while k <= 1:
+            twoOptimalSet, s2 = twoOptimal(adj_matrix,s)
+            if fitness(s2) < fitness(s):
+                s = s2
+                k = 1
+            else:
+                k += 1
+
+        generated_ind.append([s[0].copy(),s[1]])
+        s = random.choice(twoOptimalSet)
+
+    return generated_ind
 
 # Levando em consideracao que pode-se iniciar em qualquer no. E que a partir de qualquer noh eh possivel visitar qualquer outro
 def generateInitialPopulation(adj_matrix, size):
@@ -107,6 +129,56 @@ def truncationSelection(population, x):
             duplicate_index = 0
 
     return selected_population
+
+def tournamentSelection(population):
+
+    ind1 = random.choice(population)
+    ind2 = random.choice(population)
+
+    while ind1 == ind2:
+        ind2 = random.choice(population)
+
+    if ind1[1] < ind2[1]:
+        return ind1
+    else:
+        return ind2
+
+def hybridSelection(percent, population):
+    percent_increment = 1/len(population)
+    percentage = 0
+    
+    selected_population = []
+
+    while percentage < percent:
+        percentage += percent_increment
+
+        ind = tournamentSelection(population)
+
+        selected_population.append([ind[0].copy(),ind[1]])
+
+    return selected_population
+
+def greedContruction(adj_matrix):
+    num_nodes = len(adj_matrix)
+    solution = []
+
+    current_node = int(random.random() * num_nodes)
+
+    while(len(solution) < num_nodes):
+        next_jumps = adj_matrix[current_node].copy()
+        next_jumps.sort()
+
+        for node in range(len(next_jumps)): 
+            if node not in solution:
+                current_node = node
+                solution.append(node)
+                break
+
+def vnsInitialPopulation(adj_matrix, size):
+
+    greedSolution = greedContruction(adj_matrix)
+
+    return vnsAfterSelection(adj_matrix,greedSolution,size)
 
 def breed(adj_matrix, parent1, parent2):
     child = [-1]*len(parent1)
