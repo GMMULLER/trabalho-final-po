@@ -14,7 +14,7 @@ for line in file:
         else:
             write_string += elem+'\n'
 
-        file_csv.write(write_string)
+    file_csv.write(write_string)
 
 file_csv.close()
 file.close()

@@ -1,3 +1,4 @@
+from os import X_OK
 import random
 
 def twoOptimalSwap(ind,i,k):
@@ -46,8 +47,30 @@ def twoOptimal(adj_matrix,ind):
 
     return new_routes, best
 
+# def vnsAfterSelection(adj_matrix,ind,i):    
+#     s = ind
+
+#     generated_ind = []
+#     twoOptimalSet = []
+    
+#     while(len(generated_ind) < i):
+#         k = 1
+#         while k <= 1:
+#             twoOptimalSet, s2 = twoOptimal(adj_matrix,s)
+#             if s2[1] < s[1]:
+#                 s = s2
+#                 k = 1
+#             else:
+#                 k += 1
+
+#         generated_ind.append([s[0].copy(),s[1]])
+#         s = random.choice(twoOptimalSet)
+
+#     return generated_ind
+
 def vnsAfterSelection(adj_matrix,ind,i):    
     s = ind
+
     generated_ind = []
     twoOptimalSet = []
     
@@ -55,14 +78,20 @@ def vnsAfterSelection(adj_matrix,ind,i):
         k = 1
         while k <= 1:
             twoOptimalSet, s2 = twoOptimal(adj_matrix,s)
-            if fitness(s2) < fitness(s):
+            if s2[1] < s[1]:
                 s = s2
                 k = 1
             else:
                 k += 1
 
-        generated_ind.append([s[0].copy(),s[1]])
         s = random.choice(twoOptimalSet)
+
+        for elem in twoOptimalSet:
+            generated_ind.append([elem[0].copy(),elem[1]])
+            if len(generated_ind) >= i:
+                break
+
+    generated_ind.sort(key=sortCriteria)
 
     return generated_ind
 
@@ -97,7 +126,7 @@ def floydWarshall(adj_matrix):
 
     return dist
 
-def truncationSelection(population, x):
+def truncationSelection(adj_matrix, population, x):
 
     original_size = len(population)
     percent_increment = 1/len(population)
@@ -113,18 +142,9 @@ def truncationSelection(population, x):
         if percentage >= x:
             break
 
-    duplicate_index = 0
-    original_size_selected_pop = len(selected_population)
+    i = original_size - len(selected_population)
 
-    # "These fittest individuals are duplicated so the population size is maintained" 
-    while(len(selected_population) < original_size):
-
-        selected_population.append([selected_population[duplicate_index][0].copy(),selected_population[duplicate_index][1]])
-
-        duplicate_index += 1
-
-        if duplicate_index == original_size_selected_pop:
-            duplicate_index = 0
+    selected_population = selected_population + vnsAfterSelection(adj_matrix,population[0],i)
 
     return selected_population
 
@@ -141,7 +161,8 @@ def tournamentSelection(population):
     else:
         return ind2
 
-def hybridSelection(percent, population):
+def hybridSelection(adj_matrix, percent, population):
+    original_size = len(population)
     percent_increment = 1/len(population)
     percentage = 0
     
@@ -154,27 +175,41 @@ def hybridSelection(percent, population):
 
         selected_population.append([ind[0].copy(),ind[1]])
 
+    i = original_size - len(selected_population)
+
+    selected_population = selected_population + vnsAfterSelection(adj_matrix,population[0],i)
+
     return selected_population
 
-def greedContruction(adj_matrix):
+def greedConstruction(adj_matrix):
     num_nodes = len(adj_matrix)
     solution = []
 
     current_node = int(random.random() * num_nodes)
 
+    solution.append(current_node)
+
     while(len(solution) < num_nodes):
         next_jumps = adj_matrix[current_node].copy()
-        next_jumps.sort()
 
-        for node in range(len(next_jumps)): 
-            if node not in solution:
-                current_node = node
-                solution.append(node)
+        next_jumps_array = []
+
+        for i in range(len(next_jumps)):
+            next_jumps_array.append([i,next_jumps[i]])
+
+        next_jumps_array.sort(key=sortCriteria)
+
+        for elem in next_jumps_array:
+            if elem[0] not in solution:
+                current_node = elem[0]
+                solution.append(elem[0])
                 break
+
+    return [solution,fitness(adj_matrix,solution)]
 
 def vnsInitialPopulation(adj_matrix, size):
 
-    greedSolution = greedContruction(adj_matrix)
+    greedSolution = greedConstruction(adj_matrix)
 
     return vnsAfterSelection(adj_matrix,greedSolution,size)
 
@@ -182,7 +217,7 @@ def breed(adj_matrix, parent1, parent2):
     child = [-1]*len(parent1)
     
     geneA = int(random.random() * (len(parent1)+1))
-    geneB = int(random.random() * (len(parent1)+1))
+    geneB = int(random.random() * len(parent1))
     
     while(geneA == geneB):
         geneB = int(random.random() * len(parent1))
@@ -236,6 +271,7 @@ def crossover(adj_matrix,population,original_size,percent):
     
     return new_population
 
+#min. de mutacao nao faz muito sentido (TODO)
 def mutation(adj_matrix,population,percent):
 
     for elem in population:
@@ -253,8 +289,6 @@ def mutation(adj_matrix,population,percent):
 
             elem[1] = fitness(adj_matrix,elem[0])
 
-population_size = 5000
-
 graph = []
 
 # graph_file = open("graph.txt", "r")
@@ -265,7 +299,9 @@ for line in graph_file:
 
 complete_digraph = floydWarshall(graph)
 
-population = generateInitialPopulation(complete_digraph, population_size)
+population_size = 5000
+
+population = vnsInitialPopulation(complete_digraph, population_size)
 
 # print("Initial population:")
 # for p in population:
@@ -275,12 +311,6 @@ population = generateInitialPopulation(complete_digraph, population_size)
 # for i in complete_digraph:
 #     print(i)
 
-# print("=============")
-
-print("=============")
-
-# criteria_fullfilled = False
-
 best_individual = []
 generations_without_improvement = 0
 total_iterations = 0
@@ -289,37 +319,19 @@ minimum_improvement = 0.005
 while(True):
     print("Iteracao i: "+str(total_iterations))
 
-    # print("Inicial")
-    # for elem in population:
-    #     print(elem)
-
-    # while(not criteria_fullfilled):
-    population = truncationSelection(population,0.3)
+    population = hybridSelection(complete_digraph,0.9,population)
     # print("Population after selection: ")
     # for p in population:
     #     print(p)
 
-    # print("Pos truncamento")
-    # for elem in population:
-    #     print(elem)
-
     population = crossover(complete_digraph,population,population_size,0.3)
-
-    # print("Pos crossover")
-    # for elem in population:
-    #     print(elem)
 
     # print("Population after crossover: ")
     # for p in population:
     #     print(p)
 
     # print("Population after mutation: ")
-
     mutation(complete_digraph,population,0.25)
-
-    # print("Pos mutacao")
-    # for elem in population:
-    #     print(elem)
 
     population.sort(key=sortCriteria)
 
