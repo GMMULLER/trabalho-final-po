@@ -95,7 +95,6 @@ def vnsAfterSelection(adj_matrix,ind,i):
 
     return generated_ind
 
-# Levando em consideracao que pode-se iniciar em qualquer no. E que a partir de qualquer noh eh possivel visitar qualquer outro
 def generateInitialPopulation(adj_matrix, size):
     nodes = []
     population = []
@@ -242,8 +241,6 @@ def breed(adj_matrix, parent1, parent2):
 
     return [child,weight]
 
-# Esse crossover pode gerar individuos que nao sao uma solucao possivel, neh? (obs)
-# Vou implementar o ordered crossover no lugar (obs)
 def crossover(adj_matrix,population,original_size,percent):
 
     new_population = []
@@ -271,7 +268,6 @@ def crossover(adj_matrix,population,original_size,percent):
     
     return new_population
 
-#min. de mutacao nao faz muito sentido (TODO)
 def mutation(adj_matrix,population,percent):
 
     for elem in population:
